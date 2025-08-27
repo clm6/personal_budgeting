@@ -1,6 +1,6 @@
 # 💰 Smart Budget Tracker
 
-An intelligent personal finance application with AI-powered transaction categorization using TensorFlow.js. Track your spending, manage budgets, set financial goals, and let machine learning automatically categorize your transactions.
+An intelligent personal finance application with a **mock** AI-powered transaction categorization service. The current implementation simulates TensorFlow.js predictions and training while the UI and data layer are prepared for a real model. Track your spending, manage budgets, set financial goals, and let the demo AI categorize your transactions.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18.2.0-blue.svg)
@@ -10,8 +10,8 @@ An intelligent personal finance application with AI-powered transaction categori
 ## ✨ Features
 
 ### 🤖 AI-Powered Categorization
-- **Neural Network**: Real TensorFlow.js implementation for transaction categorization
-- **Smart Learning**: Trains on your spending patterns automatically
+- **Demo Neural Network**: Simulated TensorFlow.js service for transaction categorization
+- **Smart Learning**: Trains on your spending patterns automatically and persists model metadata locally
 - **Confidence Scoring**: Each prediction comes with confidence metrics
 - **Continuous Improvement**: Learns from your corrections
 - **Privacy-First**: All AI processing happens locally in your browser
@@ -70,6 +70,18 @@ npm run build
 ```
 
 This creates an optimized production build in the `build` folder.
+
+### Running Tests
+
+```bash
+npm test
+```
+
+### Linting
+
+```bash
+npm run lint
+```
 
 ## 🧠 How the AI Works
 
