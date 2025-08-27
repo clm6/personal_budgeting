@@ -1,19 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PlusCircle, Target, DollarSign, TrendingUp, AlertCircle, CheckCircle2, CreditCard, RefreshCw, Link, Building, Sparkles, Zap, TrendingDown, Edit3, Save, X, Brain, Cpu } from 'lucide-react';
+import {
+  PlusCircle,
+  Target,
+  DollarSign,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle2,
+  CreditCard,
+  RefreshCw,
+  Link,
+  Building,
+  Sparkles,
+  Zap,
+  TrendingDown,
+  Edit3,
+  Save,
+  X,
+  Brain,
+  Cpu,
+} from 'lucide-react';
+import {
+  defaultCategories,
+  CategoriesState,
+} from './src/categories';
+import { AICategorizer, fallbackRuleBased } from './src/aiService';
 
 const BudgetingApp = () => {
   const [income, setIncome] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [categories, setCategories] = useState({
-    'Housing': { allocated: 0, color: 'from-blue-500 to-blue-600', icon: '🏠', gradient: 'bg-gradient-to-r from-blue-500 to-blue-600' },
-    'Food': { allocated: 0, color: 'from-green-500 to-emerald-600', icon: '🍽️', gradient: 'bg-gradient-to-r from-green-500 to-emerald-600' },
-    'Transportation': { allocated: 0, color: 'from-yellow-500 to-orange-500', icon: '🚗', gradient: 'bg-gradient-to-r from-yellow-500 to-orange-500' },
-    'Utilities': { allocated: 0, color: 'from-purple-500 to-violet-600', icon: '⚡', gradient: 'bg-gradient-to-r from-purple-500 to-violet-600' },
-    'Entertainment': { allocated: 0, color: 'from-pink-500 to-rose-500', icon: '🎬', gradient: 'bg-gradient-to-r from-pink-500 to-rose-500' },
-    'Healthcare': { allocated: 0, color: 'from-red-500 to-pink-500', icon: '🏥', gradient: 'bg-gradient-to-r from-red-500 to-pink-500' },
-    'Savings': { allocated: 0, color: 'from-indigo-500 to-purple-600', icon: '💎', gradient: 'bg-gradient-to-r from-indigo-500 to-purple-600' },
-    'Other': { allocated: 0, color: 'from-gray-500 to-slate-600', icon: '📦', gradient: 'bg-gradient-to-r from-gray-500 to-slate-600' }
-  });
+  const [categories, setCategories] = useState<CategoriesState>(
+    defaultCategories,
+  );
   const [goals, setGoals] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [accounts, setAccounts] = useState([]);
@@ -59,94 +76,33 @@ const BudgetingApp = () => {
   const [newGoal, setNewGoal] = useState({
     name: '',
     target: '',
-    current: 0
+    current: 0,
   });
 
-  // Simulated AI Categorizer (In real implementation, this would use TensorFlow.js)
-  const AICategorizer = {
-    // Simulated neural network prediction
-    predict: async (description) => {
-      // Simulate AI processing delay
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const desc = description.toLowerCase();
-      let category = 'Other';
-      let confidence = 0.5;
-      let method = 'AI';
-
-      // Simulated AI decision-making with confidence scores
-      if (desc.includes('starbucks') || desc.includes('coffee') || desc.includes('restaurant')) {
-        category = 'Food';
-        confidence = 0.92;
-      } else if (desc.includes('rent') || desc.includes('mortgage') || desc.includes('apartment')) {
-        category = 'Housing';
-        confidence = 0.95;
-      } else if (desc.includes('netflix') || desc.includes('spotify') || desc.includes('hulu') || desc.includes('disney')) {
-        category = 'Entertainment';
-        confidence = 0.88;
-      } else if (desc.includes('shell') || desc.includes('chevron') || desc.includes('gas') || desc.includes('uber')) {
-        category = 'Transportation';
-        confidence = 0.91;
-      } else if (desc.includes('cvs') || desc.includes('pharmacy') || desc.includes('walgreens') || desc.includes('doctor')) {
-        category = 'Healthcare';
-        confidence = 0.87;
-      } else if (desc.includes('electric') || desc.includes('water') || desc.includes('internet') || desc.includes('verizon')) {
-        category = 'Utilities';
-        confidence = 0.90;
-      } else if (desc.includes('save') || desc.includes('invest') || desc.includes('401k') || desc.includes('ira')) {
-        category = 'Savings';
-        confidence = 0.85;
-      } else {
-        // Low confidence fallback to rules
-        method = 'Rules';
-        confidence = 0.6;
-        category = fallbackRuleBased(description);
-      }
-
-      return { category, confidence, method };
-    },
-
-    // Simulate model training
-    train: async (transactions, onProgress) => {
-      const epochs = 50;
-      let accuracy = 0.65; // Starting accuracy
-      
-      for (let epoch = 1; epoch <= epochs; epoch++) {
-        // Simulate training progress
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Simulate improving accuracy
-        accuracy = Math.min(0.95, 0.65 + (epoch / epochs) * 0.25 + (Math.random() - 0.5) * 0.02);
-        const loss = Math.max(0.1, 2.0 - (epoch / epochs) * 1.5 + (Math.random() - 0.5) * 0.1);
-        
-        if (onProgress) {
-          onProgress({
-            epoch,
-            totalEpochs: epochs,
-            accuracy,
-            loss,
-            isComplete: epoch === epochs
-          });
-        }
-      }
-      
-      return { accuracy: accuracy, modelSize: transactions.length };
+  // Load persisted data
+  useEffect(() => {
+    const storedTransactions = localStorage.getItem('transactions');
+    if (storedTransactions) {
+      setTransactions(JSON.parse(storedTransactions));
     }
-  };
+    const storedModel = localStorage.getItem('aiModel');
+    if (storedModel) {
+      setAiModel(JSON.parse(storedModel));
+      setAiReady(true);
+    }
+  }, []);
 
-  // Fallback rule-based categorization
-  const fallbackRuleBased = (description) => {
-    const desc = description.toLowerCase();
-    
-    if (desc.includes('grocery') || desc.includes('food') || desc.includes('cafe')) return 'Food';
-    if (desc.includes('rent') || desc.includes('housing')) return 'Housing'; 
-    if (desc.includes('gas') || desc.includes('car') || desc.includes('taxi')) return 'Transportation';
-    if (desc.includes('movie') || desc.includes('game') || desc.includes('entertainment')) return 'Entertainment';
-    if (desc.includes('medical') || desc.includes('health')) return 'Healthcare';
-    if (desc.includes('electric') || desc.includes('phone') || desc.includes('internet')) return 'Utilities';
-    
-    return 'Other';
-  };
+  // Persist transactions
+  useEffect(() => {
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  // Persist model metadata
+  useEffect(() => {
+    if (aiModel) {
+      localStorage.setItem('aiModel', JSON.stringify(aiModel));
+    }
+  }, [aiModel]);
 
   // Train AI model when we have enough data
   const trainAIModel = async () => {
@@ -176,8 +132,16 @@ const BudgetingApp = () => {
     );
 
     setIsTrainingAI(false);
-    setAiModel({ accuracy: result.accuracy, trainedOn: transactions.length });
-    console.log('✅ AI training complete! Accuracy:', (result.accuracy * 100).toFixed(1) + '%');
+    const modelData = {
+      accuracy: result.accuracy,
+      trainedOn: transactions.length,
+      date: new Date().toISOString(),
+    };
+    setAiModel(modelData);
+    console.log(
+      '✅ AI training complete! Accuracy:',
+      (result.accuracy * 100).toFixed(1) + '%'
+    );
   };
 
   // Auto-categorization with AI
